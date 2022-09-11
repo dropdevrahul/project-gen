@@ -28,11 +28,14 @@ func GenerateModule(packName string, moduleName string) {
 
 	os.Chdir(packName)
 
-	if _, err := os.Stat(packName); errors.Is(err, os.ErrNotExist) {
-		err := os.Mkdir(packName, os.ModePerm)
+	if _, err := os.Stat("src"); errors.Is(err, os.ErrNotExist) {
+		err := os.Mkdir("src", os.ModePerm)
+		handlePanicError(err)
+	} else {
 		handlePanicError(err)
 	}
-	f, err := os.Create(filepath.Join(packName, packName+".go"))
+
+	f, err := os.Create(filepath.Join("src", packName+".go"))
 	handlePanicError(err)
 
 	defer f.Close()
@@ -41,15 +44,22 @@ func GenerateModule(packName string, moduleName string) {
 	// create main.go file
 	fm, err := os.Create("main.go")
 	handlePanicError(err)
+
 	defer fm.Close()
+
 	fm.WriteString("package main")
-	fm.WriteString("\n")
+	fm.WriteString("\r\n")
+	fm.WriteString("\r\n")
 	fm.WriteString("import (")
+	fm.WriteString("\r\n")
 	fm.WriteString(fmt.Sprintf("  \"%s/%s\"", moduleName, packName))
+	fm.WriteString("\r\n")
 	fm.WriteString(")")
-	fm.WriteString("\n")
+	fm.WriteString("\r\n")
+	fm.WriteString("\r\n")
 	fm.WriteString("func main() {")
-	fm.WriteString("\n")
+	fm.WriteString("\r\n")
+	fm.WriteString("\r\n")
 	fm.WriteString("}")
 
 	cmd := exec.Command("go", "mod", "init", moduleName)
