@@ -1,3 +1,3 @@
-module github.com/dropdevrahul/go-module-generator
+module github.com/dropdevrahul/gen
 
 go 1.18
