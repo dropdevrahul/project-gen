@@ -23,15 +23,9 @@ func handlePanicError(err error) {
 // packName is the default package name
 // moduleName is the full name of the module e.g.
 // github.com/dropdevrahul/gocache
-func GenerateModule(target_dir, packName string, moduleName string) {
-	pwd, err := os.Getwd()
-	handlePanicError(err)
-
-	fmt.Println(pwd)
-
+func GenerateModule(target_dir, packName, moduleName, t string) {
 	p := filepath.Join(target_dir, packName)
-
-	if _, err := os.Stat(p); errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Stat(p); os.IsNotExist(err) {
 		err := os.Mkdir(p, os.ModePerm)
 		handlePanicError(err)
 	} else {
@@ -40,31 +34,32 @@ func GenerateModule(target_dir, packName string, moduleName string) {
 
 	os.Chdir(p)
 
-	if _, err := os.Stat(packName); errors.Is(err, os.ErrNotExist) {
-		err := os.Mkdir(packName, os.ModePerm)
-		handlePanicError(err)
-	} else {
-		handlePanicError(err)
-	}
-
-	f, err := os.Create(filepath.Join(packName, packName+".go"))
+	f, err := os.Create(packName + ".go")
 	handlePanicError(err)
 
 	defer f.Close()
 	f.WriteString(fmt.Sprintf("package %s", packName))
 
 	// create main.go file
-	fm, err := os.Create("main.go")
-	handlePanicError(err)
+	if t == "e" {
+		err = os.Mkdir("cmd", os.ModePerm)
+		handlePanicError(err)
 
-	defer fm.Close()
+		err = os.Mkdir(filepath.Join("cmd", packName), os.ModePerm)
+		handlePanicError(err)
 
-	fm.WriteString("package main")
-	fm.WriteString("\r\n")
-	fm.WriteString("\r\n")
-	fm.WriteString("func main() {")
-	fm.WriteString("\r\n")
-	fm.WriteString("}")
+		fm, err := os.Create(filepath.Join("cmd", packName, "main.go"))
+		handlePanicError(err)
+
+		defer fm.Close()
+
+		fm.WriteString("package main")
+		fm.WriteString("\r\n")
+		fm.WriteString("\r\n")
+		fm.WriteString("func main() {")
+		fm.WriteString("\r\n")
+		fm.WriteString("}")
+	}
 
 	cmd := exec.Command("go", "mod", "init", moduleName)
 	_, err = cmd.Output()
@@ -74,8 +69,12 @@ func GenerateModule(target_dir, packName string, moduleName string) {
 	AddContentsToFile(GitIgnore, ".gitignore")
 	AddContentsToFile(GolangCI, ".golangci.yml")
 
-	mk := fmt.Sprintf("BINARY_NAME=%s\n", packName) + Makefile
-	AddContentsToFile(mk, "Makefile")
+	if t == "e" {
+		mk := fmt.Sprintf("BINARY_NAME=%s\n", packName) + MakefileI
+		AddContentsToFile(mk, "Makefile")
+	} else {
+		AddContentsToFile(MakefileE, "Makefile")
+	}
 
 	cmd = exec.Command("git", "init")
 	err = cmd.Run()

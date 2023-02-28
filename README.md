@@ -16,9 +16,23 @@ make test
 ### Usage
 
 ```
-go build
+make build
 
-./gen target/path packagename github/path/name
+./target/gogen target/path packagename github/path/name
+
+./target/gogen -h
+
+Usage: ./target/gogen [OPTIONS] targetdir pkgname modname
+
+  targetdir : root of the project dir e.g home/user/dir 
+
+  pkgname   : package name only one package will be generated  e.g zeus if the flag, this behaviour can be changed with -t flag  
+
+  modname   : module name to be put in go.mod e.g github.com/dropdevrahul/gen 
+
+  -t: default value l  
+    l means generate a library package 
+    e means generate a executable go package with main.go
 
 ```
 
