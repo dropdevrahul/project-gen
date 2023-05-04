@@ -1,7 +1,7 @@
 package gen
 
 var MakefileE = `build:
-	go build -o target/${BINARY_NAME}
+	go build -o target/${BINARY_NAME %s
 
 lint:
 	golangci-lint run

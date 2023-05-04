@@ -10,14 +10,6 @@ import (
 	"strings"
 )
 
-func handlePanicError(err error) {
-	log.SetOutput(os.Stdout)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal(err)
-	}
-}
-
 // GeneratePackage a new folder as a golang module with the given
 // package name
 // packName is the default package name
@@ -25,17 +17,29 @@ func handlePanicError(err error) {
 // github.com/dropdevrahul/gocache
 func GenerateModule(target_dir, packName, moduleName, t string) {
 	p := filepath.Join(target_dir, packName)
-	if _, err := os.Stat(p); os.IsNotExist(err) {
-		err := os.Mkdir(p, os.ModePerm)
-		handlePanicError(err)
+
+	log.Printf("Creating path %s", p)
+
+	_, err := os.Stat(p)
+	if err != nil {
+		// if path does not exist
+		if errors.Is(err, os.ErrNotExist) {
+			err = os.Mkdir(p, os.ModePerm)
+			if err != nil {
+				log.Panic(err)
+			}
+		}
+		log.Panic(errors.New("Failed to check existing path"))
 	} else {
-		handlePanicError(errors.New("Path already exists"))
+		log.Panic(errors.New("Path already exists"))
 	}
 
 	os.Chdir(p)
 
 	f, err := os.Create(packName + ".go")
-	handlePanicError(err)
+	if err != nil {
+		log.Panic(err)
+	}
 
 	defer f.Close()
 	f.WriteString(fmt.Sprintf("package %s", packName))
@@ -43,15 +47,20 @@ func GenerateModule(target_dir, packName, moduleName, t string) {
 	// create main.go file
 	if t == "e" {
 		err = os.Mkdir("cmd", os.ModePerm)
-		handlePanicError(err)
+		if err != nil {
+			log.Panic(err)
+		}
 
 		err = os.Mkdir(filepath.Join("cmd", packName), os.ModePerm)
-		handlePanicError(err)
+		if err != nil {
+			log.Panic(err)
+		}
 
-		fm, err := os.Create(filepath.Join("cmd", packName, "main.go"))
-		handlePanicError(err)
-
-		defer fm.Close()
+		fp := filepath.Join("cmd", packName, "main.go")
+		fm, err := os.Create(fp)
+		if err != nil {
+			log.Panic(err)
+		}
 
 		fm.WriteString("package main")
 		fm.WriteString("\r\n")
@@ -59,32 +68,38 @@ func GenerateModule(target_dir, packName, moduleName, t string) {
 		fm.WriteString("func main() {")
 		fm.WriteString("\r\n")
 		fm.WriteString("}")
+		fm.Close()
+
+		mk := fmt.Sprintf("BINARY_NAME=%s\n", packName) + fmt.Sprintf(MakefileE, fp)
+		AddContentsToFile(mk, "Makefile")
+	} else {
+		AddContentsToFile(MakefileI, "Makefile")
 	}
 
 	cmd := exec.Command("go", "mod", "init", moduleName)
 	_, err = cmd.Output()
-	handlePanicError(err)
+	if err != nil {
+		log.Print(moduleName)
+		log.Panic(err)
+	}
 
 	// create commonly used files .gitignore, .golangci.yml
 	AddContentsToFile(GitIgnore, ".gitignore")
 	AddContentsToFile(GolangCI, ".golangci.yml")
 
-	if t == "e" {
-		mk := fmt.Sprintf("BINARY_NAME=%s\n", packName) + MakefileI
-		AddContentsToFile(mk, "Makefile")
-	} else {
-		AddContentsToFile(MakefileE, "Makefile")
-	}
-
 	cmd = exec.Command("git", "init")
 	err = cmd.Run()
-	handlePanicError(err)
+	if err != nil {
+		log.Panic(err)
+	}
 
 	// ssh remote url
 	gitUrl := "git@" + strings.Replace(moduleName, ".com/", ".com:", 1) + ".git"
 	cmd = exec.Command("git", "remote", "add", "origin", gitUrl)
 	err = cmd.Run()
-	handlePanicError(err)
+	if err != nil {
+		log.Panic(err)
+	}
 }
 
 // copyFileContents copies the contents of the file named src to the file named
@@ -94,8 +109,7 @@ func GenerateModule(target_dir, packName, moduleName, t string) {
 func AddContentsToFile(srcString, dst string) (err error) {
 	out, err := os.Create(dst)
 	if err != nil {
-		handlePanicError(err)
-
+		log.Println(err)
 		return
 	}
 	defer func() {
