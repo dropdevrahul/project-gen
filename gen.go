@@ -93,6 +93,13 @@ func GenerateModule(target_dir, packName, moduleName, t string) {
 		log.Panic(err)
 	}
 
+  // go releaser
+  cmd = exec.Command("goreleaser", "init")
+	err = cmd.Run()
+	if err != nil {
+		log.Panic(err)
+	}
+
 	// ssh remote url
 	gitUrl := "git@" + strings.Replace(moduleName, ".com/", ".com:", 1) + ".git"
 	cmd = exec.Command("git", "remote", "add", "origin", gitUrl)

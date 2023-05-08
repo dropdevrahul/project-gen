@@ -11,7 +11,17 @@ make build
 make test
 ```
 
-* Initializes a git repo with git and ssh based remote url // TODO to provide an option to use ssh/https
+* Adds [go-releaser](https://github.com/goreleaser/goreleaser) and commands to Makefile
+```
+# creates packages in dist dir
+make release-local
+
+# pushes release to github
+make release
+
+```
+
+* Initializes a git repo with git and ssh based remote url
 
 ### Usage
 

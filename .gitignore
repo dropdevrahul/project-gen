@@ -3,3 +3,5 @@ go-module-generator
 copy/
 builds/
 target/
+
+dist/

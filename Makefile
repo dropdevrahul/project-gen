@@ -1,5 +1,5 @@
 BINARY_NAME=gogen
-TAG=$(shell git describe --abbrev --tags)
+TAG=$(shell git describe --abbrev=0 --tags)
 
 build:
 	go build -o  target/${BINARY_NAME} cmd/gen/main.go
@@ -12,3 +12,13 @@ build-tag:
 
 lint:
 	golangci-lint run
+
+release-local:
+	goreleaser release --snapshot --clean
+
+release:
+	goreleaser release
+
+changedoc:
+	echo ${TAG}
+	git-chglog -o CHANGELOG.md ..${TAG}

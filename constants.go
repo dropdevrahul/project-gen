@@ -1,8 +1,6 @@
 package gen
 
-var MakefileE = `build:
-	go build -o target/${BINARY_NAME %s
-
+const commonMakefile = `
 lint:
 	golangci-lint run
 
@@ -10,11 +8,13 @@ test:
 	go test ./...
 `
 
-var GitIgnore = "*.swp\nbuilds/\ntarget/"
+const MakefileE = `release-local:
+	goreleaser release --snapshot --clean
 
-var MakefileI = `lint:
-	golangci-lint run
+release:
+	goreleaser release
+` + commonMakefile
 
-test:
-	go test ./...
-`
+const GitIgnore = "*.swp\nbuilds/\ntarget/"
+
+const MakefileI = commonMakefile
