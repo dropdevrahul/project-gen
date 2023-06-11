@@ -28,8 +28,9 @@ func GenerateModule(target_dir, packName, moduleName, t string) {
 			if err != nil {
 				log.Panic(err)
 			}
+		} else {
+			log.Panic(fmt.Errorf("Unable to check path %w", err))
 		}
-		log.Panic(errors.New("Failed to check existing path"))
 	} else {
 		log.Panic(errors.New("Path already exists"))
 	}
@@ -70,8 +71,14 @@ func GenerateModule(target_dir, packName, moduleName, t string) {
 		fm.WriteString("}")
 		fm.Close()
 
-		mk := fmt.Sprintf("BINARY_NAME=%s\n", packName) + fmt.Sprintf(MakefileE, fp)
+		mk := fmt.Sprintf("BINARY_NAME=%s\n", packName) + MakefileE
 		AddContentsToFile(mk, "Makefile")
+		// go releaser
+		cmd := exec.Command("goreleaser", "init")
+		err = cmd.Run()
+		if err != nil {
+			log.Panic(err)
+		}
 	} else {
 		AddContentsToFile(MakefileI, "Makefile")
 	}
@@ -88,13 +95,6 @@ func GenerateModule(target_dir, packName, moduleName, t string) {
 	AddContentsToFile(GolangCI, ".golangci.yml")
 
 	cmd = exec.Command("git", "init")
-	err = cmd.Run()
-	if err != nil {
-		log.Panic(err)
-	}
-
-  // go releaser
-  cmd = exec.Command("goreleaser", "init")
 	err = cmd.Run()
 	if err != nil {
 		log.Panic(err)

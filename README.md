@@ -11,7 +11,7 @@ make build
 make test
 ```
 
-* Adds [go-releaser](https://github.com/goreleaser/goreleaser) and commands to Makefile
+* Adds [go-releaser](https://github.com/goreleaser/goreleaser) and commands to Makefile only for generating projects that executable `e` type
 ```
 # creates packages in dist dir
 make release-local
